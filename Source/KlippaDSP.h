@@ -25,7 +25,16 @@ namespace klippa
         else // overflow-safe form: a / (a * (1 + a^-p)^(1/p))
             y = 1.0f / std::pow (1.0f + std::pow (1.0f / a, p), 1.0f / p);
 
-        y = std::min (1.0f, y); // guarantee: never above ceiling
+        y = std::min (1.0f, y);
         return std::copysign (y, x);
+    }
+
+    // Asymmetric clip: bias shifts the curve (even harmonics). The static offset
+    // clip(bias) is removed so silence stays silent (no DC), and the result is
+    // always limited to +/-1.
+    inline float clipAsym (float x, float p, float bias, float biasOffset) noexcept
+    {
+        const float y = clip (x + bias, p) - biasOffset;
+        return std::max (-1.0f, std::min (1.0f, y));
     }
 }
